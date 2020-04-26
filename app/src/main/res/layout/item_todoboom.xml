@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="80dp"
-    android:id="@+id/todo_layout">
+    android:id="@+id/todo_layout"
+    android:background="?android:attr/selectableItemBackground">
 
     <TextView
         android:id="@+id/single_todo"

@@ -71,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView rv = findViewById(R.id.recycle);
         TodoAdapter ad = new TodoAdapter(todo_list, this);
         rv.setAdapter(ad);
+        ad.setOnItemClickListener(new TodoAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(int position) {
+                // logic when clicked!
+            }
+        });
         rv.setLayoutManager(new LinearLayoutManager(this));
     }
 }

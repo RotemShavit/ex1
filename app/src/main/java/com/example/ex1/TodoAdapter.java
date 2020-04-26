@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -13,7 +14,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
 
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
-    @NonNull
+    // @NonNull
+
+    private OnItemClickListener mListener;
+
+    public interface OnItemClickListener
+    {
+        void onItemClick(int position);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener)
+    {
+        mListener = listener;
+    }
 
     private ArrayList<String> todo_string = new ArrayList<>();
     private Context context;
@@ -26,7 +39,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()). inflate(R.layout.item_todoboom, parent, false);
-        ViewHolder holder = new ViewHolder(view);
+        ViewHolder holder = new ViewHolder(view, mListener);
         return holder;
     }
 
@@ -49,10 +62,24 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     public class ViewHolder extends RecyclerView.ViewHolder{
         TextView todo_txt;
         ConstraintLayout single_layout;
-        public ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
             todo_txt = itemView.findViewById(R.id.single_todo);
             single_layout = itemView.findViewById(R.id.todo_layout);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(listener != null)
+                    {
+                        int position = getAdapterPosition();
+                        if(position != RecyclerView.NO_POSITION)
+                        {
+                            listener.onItemClick(position);
+                        }
+                    }
+                }
+            });
         }
     }
 }
