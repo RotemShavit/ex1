@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
                 String str = edit.getText().toString();
                 String empty_str = "";
                 String error_msg = "OOPS!\nYOU CAN NOT CREATE AN EMPTY TODOBOOM :)";
+                edit.setText(empty_str);
                 Context context = getApplicationContext();
                 if(str.equals(empty_str))
                 {

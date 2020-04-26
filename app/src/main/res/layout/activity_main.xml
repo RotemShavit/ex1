@@ -8,7 +8,7 @@
 
     <TextView
         android:id="@+id/TODOBOOM"
-        android:textSize="50sp"
+        android:textSize="40sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TODOBOOM"
@@ -24,11 +24,11 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:scrollbars="vertical"
+        app:layout_constraintBottom_toTopOf="@id/EditText"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_percent="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/EditText"
-        app:layout_constraintTop_toBottomOf="@id/TODOBOOM"/>
+        app:layout_constraintTop_toBottomOf="@+id/TODOBOOM" />
 
     <EditText
         android:id="@+id/EditText"
@@ -37,11 +37,11 @@
         android:hint="Type here"
         android:inputType="text"
         android:textSize="30sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/create_button"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/TODOBOOM"
-        app:layout_constraintVertical_bias="0.8" />
+        app:layout_constraintTop_toBottomOf="@+id/recycle"
+        app:layout_constraintVertical_bias="0" />
 
     <Button
         android:id="@+id/create_button"
@@ -52,8 +52,8 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/EditText"
+        app:layout_constraintTop_toBottomOf="@+id/recycle"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.05"/>
+        app:layout_constraintVertical_bias="0.8" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
