@@ -1,6 +1,7 @@
 package com.example.ex1;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,8 @@ import java.util.ArrayList;
 
 public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     // @NonNull
+
+    private static String TAG ="TODOAdapter";
 
     private OnItemClickListener mListener;
 
@@ -44,14 +47,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
                  holder.todo_txt.setText(todo_string.get(position));
-                 holder.single_layout.setOnClickListener(new View.OnClickListener() {
-                     @Override
-                     public void onClick(View v) {
-                         // write logic
-                     }
-                 });
+//                 holder.single_layout.setOnClickListener(new View.OnClickListener() {
+//                     @Override
+//                     public void onClick(View v) {
+//                         // write logic
+//                         Log.d(TAG, "Clicked on: " + todo_string.get(position));
+//                     }
+//                 });
     }
 
     @Override
@@ -70,6 +74,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Log.d(TAG, "clicked");
                     if(listener != null)
                     {
                         int position = getAdapterPosition();

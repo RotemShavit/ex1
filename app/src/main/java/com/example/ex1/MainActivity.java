@@ -6,9 +6,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate;
 
 import android.content.Context;
+import android.nfc.Tag;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -17,7 +20,9 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static String TAG ="MAIN";
     private ArrayList<String> todo_list = new ArrayList<>();
+    private ArrayList<Integer> done_list = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -47,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
                 else
                 {
                     todo_list.add(str);
+                    done_list.add(1);
                     initRecyclerView();
                 }
             }
@@ -68,15 +74,25 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecyclerView()
     {
+        Log.d(TAG, "init");
         RecyclerView rv = findViewById(R.id.recycle);
-        TodoAdapter ad = new TodoAdapter(todo_list, this);
+        final TodoAdapter ad = new TodoAdapter(todo_list, this);
         rv.setAdapter(ad);
+        rv.setLayoutManager(new LinearLayoutManager(this));
         ad.setOnItemClickListener(new TodoAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
                 // logic when clicked!
+                Context context = getApplicationContext();
+                if(done_list.get(position) == 1)
+                {
+                    String todo = todo_list.get(position);
+                    todo_list.set(position , "Done :) -> " + todo);
+                    ad.notifyItemChanged(position);
+                    done_list.set(position, 0);
+                    Toast.makeText(context, "TODO" + todo + "is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
-        rv.setLayoutManager(new LinearLayoutManager(this));
     }
 }
