@@ -7,8 +7,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.nfc.Tag;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -21,7 +23,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static String TAG ="MAIN";
+    private static String TAG ="MainActivity";
     //private ArrayList<String> todo_list = new ArrayList<>();
     private ArrayList<TodoWithImage> todo_list = new ArrayList<>();
     private ArrayList<Integer> done_list = new ArrayList<>();
@@ -29,14 +31,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        Log.d(TAG, "todo init");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         final EditText edit = (EditText) findViewById(R.id.EditText);
         final Button button = (Button) findViewById(R.id.create_button);
         final RecyclerView recycle = (RecyclerView) findViewById(R.id.recycle);
-        if(savedInstanceState != null)
+        if(savedInstanceState != null && savedInstanceState.getString("todo_list") != null)
         {
+            Log.d(TAG, "todo if, saved = " + savedInstanceState);
             String s = savedInstanceState.getString("todo_list");
             String d = savedInstanceState.getString("done");
             String[] list_s = s.split(";");
@@ -94,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecyclerView()
     {
-        Log.d(TAG, "init");
+        //Log.d(TAG, "init");
         RecyclerView rv = findViewById(R.id.recycle);
         final TodoAdapter ad = new TodoAdapter(todo_list, this);
         rv.setAdapter(ad);
@@ -121,18 +125,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState)
     {
-        String s = "";
-        String d = "";
-        for (TodoWithImage a : todo_list)
-        {
-            s = s + a.getString() + ";" + String.valueOf(a.getImage()) + ";";
-        }
-        for (int i : done_list)
-        {
-            d = d + String.valueOf(i) + ";";
-        }
         super.onSaveInstanceState(outState);
-        outState.putString("todo_list", s);
-        outState.putString("done", d);
+        Log.d(TAG, "todo size: " + todo_list.size());
+        if(todo_list.size() > 0)
+        {
+            String s = "";
+            String d = "";
+            for (TodoWithImage a : todo_list)
+            {
+                s = s + a.getString() + ";" + String.valueOf(a.getImage()) + ";";
+            }
+            for (int i : done_list)
+            {
+                d = d + String.valueOf(i) + ";";
+            }
+            outState.putString("todo_list", s);
+            outState.putString("done", d);
+        }
+        else
+        {
+            outState = null;
+        }
     }
 }
