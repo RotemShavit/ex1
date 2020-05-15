@@ -25,6 +25,7 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
     public interface OnItemClickListener
     {
         void onItemClick(int position);
+        boolean onLongClick(int position);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener)
@@ -91,6 +92,24 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.ViewHolder> {
                     }
                 }
             });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Log.d(TAG, "long clicked");
+                    if(listener != null)
+                    {
+                        int position = getAdapterPosition();
+                        if(position != RecyclerView.NO_POSITION)
+                        {
+                            //image.setImageResource(R.drawable.ic_launcher_background);
+                            listener.onLongClick(position);
+                        }
+                    }
+                    return true;
+                }
+            });
         }
     }
+
+
 }

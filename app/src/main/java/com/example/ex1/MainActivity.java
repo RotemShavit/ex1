@@ -119,6 +119,15 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(context, "TODO " + todo.getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
                 }
             }
+
+            @Override
+            public boolean onLongClick(int position) {
+                Context context = getApplicationContext();
+                TodoWithImage todo = todo_list.get(position);
+                //Toast.makeText(context, "Long press on " + todo.getString(), Toast.LENGTH_SHORT).show();
+                openDialog(position);
+                return true;
+            }
         });
     }
 
@@ -146,5 +155,23 @@ public class MainActivity extends AppCompatActivity {
         {
             outState = null;
         }
+    }
+
+    public void openDialog(final int position)
+    {
+        DeleteDialog deleteDialog = new DeleteDialog();
+        deleteDialog.setOnDeleteClickListener(new DeleteDialog.OnDeleteClickListener() {
+            @Override
+            public void onPosClick() {
+                Context context = getApplicationContext();
+                todo_list.remove(position);
+                initRecyclerView();
+            }
+
+            @Override
+            public void onNegClick() {
+            }
+        });
+        deleteDialog.show(getSupportFragmentManager(), "delete dialog");
     }
 }
