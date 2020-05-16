@@ -3,13 +3,14 @@
     package="com.example.ex1">
 
     <application
+        android:name=".Todoboom"
         android:allowBackup="true"
         android:icon="@mipmap/todoboom_round"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/todoboom_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name=".Todoboom">
+        android:theme="@style/AppTheme">
+        <activity android:name=".TodoEditActivity"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

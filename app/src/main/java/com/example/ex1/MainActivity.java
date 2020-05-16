@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.RecyclerViewAccessibilityDelegate;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.nfc.Tag;
 import android.os.Bundle;
@@ -44,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "todo init if");
             Log.d(TAG, "todo if, saved = " + savedInstanceState);
             String t = savedInstanceState.getString("todo_list");
-            String d = savedInstanceState.getString("done");
+            String d = savedInstanceState.getString("done_list");
             String[] list_t = t.split(";");
             String[] list_d = d.split(";");
 
@@ -152,22 +153,24 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(int position) {
                 // logic when clicked!
                 Context context = getApplicationContext();
-                if(done_list.get(position) == 1)
-                {
-                    TodoWithImage todo = todo_list.get(position);
-                    //todo_list.set(position , "Done :) -> " + todo);
-                    //todo.changeText("Done :) -> " + todo.getString());
-                    todo.changeImage(R.drawable.todo_done_foreground);
-                    ad.notifyItemChanged(position);
-                    done_list.set(position, 0);
-                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("done_list", done_list_to_string());
-                    editor.putString("todo_list", todo_list_to_string());
-                    editor.apply();
-                    Log.d(TAG, "todo done_list: " + done_list_to_string());
-                    Toast.makeText(context, "TODO " + todo.getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
-                }
+                openActivityEdit(todo_list.get(position), position);
+                //ad.notifyItemChanged(position);
+//                if(done_list.get(position) == 1)
+//                {
+//                    TodoWithImage todo = todo_list.get(position);
+//                    //todo_list.set(position , "Done :) -> " + todo);
+//                    //todo.changeText("Done :) -> " + todo.getString());
+//                    todo.changeImage(R.drawable.todo_done_foreground);
+//                    ad.notifyItemChanged(position);
+//                    done_list.set(position, 0);
+//                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//                    SharedPreferences.Editor editor = sp.edit();
+//                    editor.putString("done_list", done_list_to_string());
+//                    editor.putString("todo_list", todo_list_to_string());
+//                    editor.apply();
+//                    Log.d(TAG, "todo done_list: " + done_list_to_string());
+//                    Toast.makeText(context, "TODO " + todo.getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
+//                }
             }
 
             @Override
@@ -199,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 //                d = d + String.valueOf(i) + ";";
 //            }
             outState.putString("todo_list", todo_list_to_string());
-            outState.putString("done", done_list_to_string());
+            outState.putString("done_list", done_list_to_string());
         }
         else
         {
@@ -250,5 +253,42 @@ public class MainActivity extends AppCompatActivity {
             d = d + a + ";";
         }
         return d;
+    }
+
+    private void openActivityEdit(TodoWithImage todo_item, int position)
+    {
+        if(done_list.get(position) == 1)
+        {
+            Intent intent = new Intent(this, TodoEditActivity.class);
+            intent.putExtra("todo_string", todo_item.getString());
+            intent.putExtra("pos", position);
+            Log.d(TAG, "openactivity" + intent);
+            startActivityForResult(intent, 1);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1) {
+            if (resultCode == RESULT_OK) {
+                int pos = data.getIntExtra("pos", 0);
+                String s = data.getStringExtra("updated_text");
+                Log.d(TAG,"kaka: " + s);
+                todo_list.get(pos).changeText(s);
+                if(data.getStringExtra("is_done").equals("yes"))
+                {
+                    todo_list.get(pos).changeImage(R.drawable.todo_done_foreground);
+                    done_list.set(pos, 0);
+                    Toast.makeText(this, "TODO " + todo_list.get(pos).getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
+                }
+                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString("done_list", done_list_to_string());
+                editor.putString("todo_list", todo_list_to_string());
+                editor.apply();
+                initRecyclerView();
+            }
+        }
     }
 }
