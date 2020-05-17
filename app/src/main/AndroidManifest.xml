@@ -10,7 +10,8 @@
         android:roundIcon="@mipmap/todoboom_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".TodoEditActivity"></activity>
+        <activity android:name=".TodoDoneActivity"></activity>
+        <activity android:name=".TodoEditActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

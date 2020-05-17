@@ -7,11 +7,11 @@
     tools:context=".TodoEditActivity">
 
     <TextView
-        android:id="@+id/edit_title"
+        android:id="@+id/done_title"
         android:textSize="40sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Edit A TODOBOOM"
+        android:text="DONE TODOBOOM"
         android:textColor="@android:color/holo_purple"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -19,36 +19,34 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.1" />
 
-    <EditText
-        android:id="@+id/todo_edit_Edit_text"
+    <TextView
+        android:id="@+id/todo_done_Edit_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edit_title"
+        app:layout_constraintTop_toBottomOf="@id/done_title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.3"/>
 
     <Button
-        android:id="@+id/apply_button"
+        android:id="@+id/un_done_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text = "APPLY"
+        android:text = "Mark as undone"
         android:textSize = "20sp"
         style = "@style/Widget.AppCompat.Button.Borderless.Colored"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edit_title"
-        app:layout_constraintStart_toEndOf="@id/todo_edit_Edit_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintVertical_bias="0.32"/>
+        app:layout_constraintTop_toBottomOf="@id/done_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button
-        android:id="@+id/done_button"
+        android:id="@+id/delete_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text = "MARK AS DONE"
+        android:text = "DELETE"
         android:textSize = "20sp"
         style = "@style/Widget.AppCompat.Button.Borderless.Colored"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -56,29 +54,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintVertical_bias="0.7"/>
-
-    <TextView
-        android:id="@+id/added_time"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/done_button"
-        app:layout_constraintVertical_bias="0.3"
-        app:layout_constraintHorizontal_bias="0.6"/>
-
-    <TextView
-        android:id="@+id/last_edited"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/added_time"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/done_button"
-        app:layout_constraintVertical_bias="0.3"
-        app:layout_constraintHorizontal_bias="0.65"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

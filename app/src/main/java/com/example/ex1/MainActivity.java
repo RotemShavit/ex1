@@ -1,6 +1,7 @@
 package com.example.ex1;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -10,6 +11,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.nfc.Tag;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -20,6 +22,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -108,19 +111,6 @@ public class MainActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putString("todo_list", todo_list_to_string());
                     editor.putString("done_list", done_list_to_string());
-//                    String stored_todo_list = sp.getString("todo_list", null);
-//                    String stored_done_list = sp.getString("done_list", null);
-//                    String to_add = cur.getString() + ";" + cur.getImage() + ";";
-//                    if(stored_todo_list == null)
-//                    {
-//                        editor.putString("todo_list", to_add);
-//                        editor.putString("done_list", "1;");
-//                    }
-//                    else
-//                    {
-//                        editor.putString("todo_list", stored_todo_list + to_add);
-//                        editor.putString("done_list", stored_done_list + "1;");
-//                    }
                     editor.apply();
                     initRecyclerView();
                 }
@@ -128,22 +118,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-//    private void initTodo()
-//    {
-//        todo_list.add("OS week 4");
-//        todo_list.add("DSP ex1");
-//        todo_list.add("OS ex2");
-//        todo_list.add("PostPC ex3");
-//        todo_list.add("PostPC ex4");
-//        todo_list.add("PostPC ex5");
-//        todo_list.add("PostPC ex6");
-//        todo_list.add("PostPC ex7");
-//        initRecyclerView();
-//    }
-
     private void initRecyclerView()
     {
-        //Log.d(TAG, "init");
         RecyclerView rv = findViewById(R.id.recycle);
         final TodoAdapter ad = new TodoAdapter(todo_list, this);
         rv.setAdapter(ad);
@@ -153,31 +129,13 @@ public class MainActivity extends AppCompatActivity {
             public void onItemClick(int position) {
                 // logic when clicked!
                 Context context = getApplicationContext();
-                openActivityEdit(todo_list.get(position), position);
-                //ad.notifyItemChanged(position);
-//                if(done_list.get(position) == 1)
-//                {
-//                    TodoWithImage todo = todo_list.get(position);
-//                    //todo_list.set(position , "Done :) -> " + todo);
-//                    //todo.changeText("Done :) -> " + todo.getString());
-//                    todo.changeImage(R.drawable.todo_done_foreground);
-//                    ad.notifyItemChanged(position);
-//                    done_list.set(position, 0);
-//                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-//                    SharedPreferences.Editor editor = sp.edit();
-//                    editor.putString("done_list", done_list_to_string());
-//                    editor.putString("todo_list", todo_list_to_string());
-//                    editor.apply();
-//                    Log.d(TAG, "todo done_list: " + done_list_to_string());
-//                    Toast.makeText(context, "TODO " + todo.getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
-//                }
+                openActivity(todo_list.get(position), position);
             }
 
             @Override
             public boolean onLongClick(int position) {
                 Context context = getApplicationContext();
                 TodoWithImage todo = todo_list.get(position);
-                //Toast.makeText(context, "Long press on " + todo.getString(), Toast.LENGTH_SHORT).show();
                 openDialog(position);
                 return true;
             }
@@ -191,16 +149,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "todo size: " + todo_list.size());
         if(todo_list.size() > 0)
         {
-//            String s = "";
-//            String d = "";
-//            for (TodoWithImage a : todo_list)
-//            {
-//                s = s + a.getString() + ";" + String.valueOf(a.getImage()) + ";";
-//            }
-//            for (int i : done_list)
-//            {
-//                d = d + String.valueOf(i) + ";";
-//            }
             outState.putString("todo_list", todo_list_to_string());
             outState.putString("done_list", done_list_to_string());
         }
@@ -216,15 +164,7 @@ public class MainActivity extends AppCompatActivity {
         deleteDialog.setOnDeleteClickListener(new DeleteDialog.OnDeleteClickListener() {
             @Override
             public void onPosClick() {
-                Context context = getApplicationContext();
-                todo_list.remove(position);
-                done_list.remove(position);
-                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putString("todo_list", todo_list_to_string())
-                        .putString("done_list", done_list_to_string());
-                initRecyclerView();
-                editor.apply();
+                delete_todo(position);
             }
 
             @Override
@@ -255,15 +195,22 @@ public class MainActivity extends AppCompatActivity {
         return d;
     }
 
-    private void openActivityEdit(TodoWithImage todo_item, int position)
+    private void openActivity(TodoWithImage todo_item, int position)
     {
         if(done_list.get(position) == 1)
         {
             Intent intent = new Intent(this, TodoEditActivity.class);
             intent.putExtra("todo_string", todo_item.getString());
             intent.putExtra("pos", position);
-            Log.d(TAG, "openactivity" + intent);
             startActivityForResult(intent, 1);
+        }
+        else
+        {
+            Log.d(TAG, "todo done activity");
+            Intent intent = new Intent(this, TodoDoneActivity.class);
+            intent.putExtra("todo_string", todo_item.getString());
+            intent.putExtra("pos", position);
+            startActivityForResult(intent, 2);
         }
     }
 
@@ -271,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
+            // return from edit activity
             if (resultCode == RESULT_OK) {
                 int pos = data.getIntExtra("pos", 0);
                 String s = data.getStringExtra("updated_text");
@@ -290,5 +238,37 @@ public class MainActivity extends AppCompatActivity {
                 initRecyclerView();
             }
         }
+        else if(requestCode == 2)
+        {
+            // return from done activity
+            if(resultCode == RESULT_OK)
+            {
+                int pos = data.getIntExtra("pos", 0);
+                String is_done = data.getStringExtra("is_done");
+                if(is_done.equals("no"))
+                {
+                    done_list.set(pos, 1);
+                    todo_list.get(pos).changeImage(0);
+                    initRecyclerView();
+                }
+                String to_delete = data.getStringExtra("to_delete");
+                if(to_delete.equals("yes"))
+                {
+                    delete_todo(pos);
+                }
+            }
+        }
+    }
+
+    private void delete_todo(int position)
+    {
+        todo_list.remove(position);
+        done_list.remove(position);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("todo_list", todo_list_to_string())
+                .putString("done_list", done_list_to_string());
+        initRecyclerView();
+        editor.apply();
     }
 }
