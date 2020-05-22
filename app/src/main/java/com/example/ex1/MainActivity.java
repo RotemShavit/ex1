@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -22,20 +23,37 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.lang.reflect.Array;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.LongFunction;
+
+import javax.sql.StatementEvent;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static String TAG ="MainActivity";
-    //private ArrayList<String> todo_list = new ArrayList<>();
+    private static String TAG = "MainActivity";
     private ArrayList<TodoWithImage> todo_list = new ArrayList<>();
-    private ArrayList<Integer> done_list = new ArrayList<>();
+    private String ERRORMSG = "OOPS!\nYOU CAN NOT CREATE AN EMPTY TODOBOOM :)";
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        Log.d(TAG, "todo init");
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -43,83 +61,44 @@ public class MainActivity extends AppCompatActivity {
         final Button button = (Button) findViewById(R.id.create_button);
         final RecyclerView recycle = (RecyclerView) findViewById(R.id.recycle);
 
-        if(savedInstanceState != null && savedInstanceState.getString("todo_list") != null)
-        {
-            Log.d(TAG, "todo init if");
-            Log.d(TAG, "todo if, saved = " + savedInstanceState);
-            String t = savedInstanceState.getString("todo_list");
-            String d = savedInstanceState.getString("done_list");
-            String[] list_t = t.split(";");
-            String[] list_d = d.split(";");
 
-            for(int i = 0; i < list_t.length - 1; i = i + 2)
-            {
-                    todo_list.add(new TodoWithImage(list_t[i], Integer.parseInt(list_t[i + 1])));
-            }
-            for(String i : list_d)
-            {
-                done_list.add(Integer.parseInt(i));
-            }
+        if (savedInstanceState != null && savedInstanceState.getString("todo_list") != null)
+        {
+            readBundle(savedInstanceState);
             initRecyclerView();
         }
         else
         {
-            Log.d(TAG, "todo init else");
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-            String t = sp.getString("todo_list", null);
-            String d = sp.getString("done_list", null);
-            Log.d(TAG, "todo String t: " + t);
-            Log.d(TAG, "todo String d: " + d);
-            if(t != null && d != null && !t.equals("") && !d.equals(""))
-            {
-                String[] list_t = t.split(";");
-                String[] list_d = d.split(";");
-                for(int i = 0; i < list_t.length - 1; i = i + 2)
-                {
-                    todo_list.add(new TodoWithImage(list_t[i], Integer.parseInt(list_t[i + 1])));
-                }
-                for(String i : list_d)
-                {
-                    done_list.add(Integer.parseInt(i));
-                }
-                initRecyclerView();
-            }
+            readFire();
         }
-
-        //initTodo();
-
+//        Todoboom app = (Todoboom) getApplicationContext();
+//        this.todo_list = app.todo_list;
+//        initRecyclerView();
         button.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
                 String str = edit.getText().toString();
-                String empty_str = "";
-                String error_msg = "OOPS!\nYOU CAN NOT CREATE AN EMPTY TODOBOOM :)";
-                edit.setText(empty_str);
+                edit.setText("");
                 Context context = getApplicationContext();
-                if(str.equals(empty_str))
-                {
-                    Toast.makeText(context, error_msg, Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    TodoWithImage cur = new TodoWithImage(str, 0);
+                if (str.equals("")) {
+                    Toast.makeText(context, ERRORMSG, Toast.LENGTH_SHORT).show();
+                } else {
+                    Date d = new Date();
+                    TodoWithImage cur = new TodoWithImage(str, 0, 1, getID(), d.toString(), d.toString());
                     todo_list.add(cur);
-                    done_list.add(1);
-
-                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("todo_list", todo_list_to_string());
-                    editor.putString("done_list", done_list_to_string());
-                    editor.apply();
+                    saveToFire(cur);
                     initRecyclerView();
                 }
             }
         });
     }
 
-    private void initRecyclerView()
-    {
+    private long getID() {
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        return random.nextLong(10_000_000_000L, 100_000_000_000L);
+    }
+
+    private void initRecyclerView() {
         RecyclerView rv = findViewById(R.id.recycle);
         final TodoAdapter ad = new TodoAdapter(todo_list, this);
         rv.setAdapter(ad);
@@ -128,14 +107,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(int position) {
                 // logic when clicked!
-                Context context = getApplicationContext();
                 openActivity(todo_list.get(position), position);
             }
 
             @Override
             public boolean onLongClick(int position) {
-                Context context = getApplicationContext();
-                TodoWithImage todo = todo_list.get(position);
                 openDialog(position);
                 return true;
             }
@@ -143,27 +119,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onSaveInstanceState(@NonNull Bundle outState)
-    {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.d(TAG, "todo size: " + todo_list.size());
-        if(todo_list.size() > 0)
-        {
+        if (todo_list.size() > 0) {
             outState.putString("todo_list", todo_list_to_string());
-            outState.putString("done_list", done_list_to_string());
-        }
-        else
-        {
+        } else {
             outState = null;
         }
     }
 
-    public void openDialog(final int position)
-    {
+    public void openDialog(final int position) {
         DeleteDialog deleteDialog = new DeleteDialog();
         deleteDialog.setOnDeleteClickListener(new DeleteDialog.OnDeleteClickListener() {
             @Override
             public void onPosClick() {
+                deleteFromFire(todo_list.get(position));
                 delete_todo(position);
             }
 
@@ -175,33 +145,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private String todo_list_to_string()
-    {
+    private String todo_list_to_string() {
         String s = "";
-        for (TodoWithImage a : todo_list)
-        {
-            s = s + a.getString() + ";" + String.valueOf(a.getImage()) + ";";
+        for (TodoWithImage a : todo_list) {
+            s = s + a.getString() + ";" + a.getImage() + ";" + a.getIsDone() + ";" + a.getID() + ";"
+            + a.getDate("create") + ";" + a.getDate("edit") + ";";
         }
         return s;
     }
 
-    private String done_list_to_string()
+    private void readBundle(Bundle bundle)
     {
-        String d = "";
-        for (int a : done_list)
+        String s = bundle.getString("todo_list");
+        String[] a = s.split(";");
+        for(int i = 0; i < a.length; i = i + 6)
         {
-            d = d + a + ";";
+            TodoWithImage cur = new TodoWithImage(a[i], Integer.parseInt(a[i+1]), Integer.parseInt(a[i+2]),
+                    Long.parseLong(a[i+3]), a[i+4], a[i+5]);
+            todo_list.add(cur);
         }
-        return d;
     }
 
     private void openActivity(TodoWithImage todo_item, int position)
     {
-        if(done_list.get(position) == 1)
+        if(todo_list.get(position).getIsDone() == 1)
         {
             Intent intent = new Intent(this, TodoEditActivity.class);
             intent.putExtra("todo_string", todo_item.getString());
             intent.putExtra("pos", position);
+            intent.putExtra("create", todo_item.getDate("create"));
+            intent.putExtra("edit", todo_item.getDate("edit"));
             startActivityForResult(intent, 1);
         }
         else
@@ -222,19 +195,22 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 int pos = data.getIntExtra("pos", 0);
                 String s = data.getStringExtra("updated_text");
-                Log.d(TAG,"kaka: " + s);
-                todo_list.get(pos).changeText(s);
+                if(!s.equals(todo_list.get(pos).getString()))
+                {
+                    todo_list.get(pos).changeText(s);
+                    Date d = new Date();
+                    todo_list.get(pos).changeDate(d.toString());
+                }
                 if(data.getStringExtra("is_done").equals("yes"))
                 {
                     todo_list.get(pos).changeImage(R.drawable.todo_done_foreground);
-                    done_list.set(pos, 0);
-                    Toast.makeText(this, "TODO " + todo_list.get(pos).getString() + " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
+                    todo_list.get(pos).changeIsDone(0);
+                    Date d = new Date();
+                    todo_list.get(pos).changeDate(d.toString());
+                    Toast.makeText(this, "TODO " + todo_list.get(pos).getString() +
+                            " is now DONE. BOOM!", Toast.LENGTH_SHORT).show();
                 }
-                SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                SharedPreferences.Editor editor = sp.edit();
-                editor.putString("done_list", done_list_to_string());
-                editor.putString("todo_list", todo_list_to_string());
-                editor.apply();
+                updateFire(todo_list.get(pos));
                 initRecyclerView();
             }
         }
@@ -247,13 +223,17 @@ public class MainActivity extends AppCompatActivity {
                 String is_done = data.getStringExtra("is_done");
                 if(is_done.equals("no"))
                 {
-                    done_list.set(pos, 1);
+                    todo_list.get(pos).changeIsDone(1);
                     todo_list.get(pos).changeImage(0);
+                    Date d = new Date();
+                    todo_list.get(pos).changeDate(d.toString());
+                    updateFire(todo_list.get(pos));
                     initRecyclerView();
                 }
                 String to_delete = data.getStringExtra("to_delete");
                 if(to_delete.equals("yes"))
                 {
+                    deleteFromFire(todo_list.get(pos));
                     delete_todo(pos);
                 }
             }
@@ -263,12 +243,72 @@ public class MainActivity extends AppCompatActivity {
     private void delete_todo(int position)
     {
         todo_list.remove(position);
-        done_list.remove(position);
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        SharedPreferences.Editor editor = sp.edit();
-        editor.putString("todo_list", todo_list_to_string())
-                .putString("done_list", done_list_to_string());
         initRecyclerView();
-        editor.apply();
+    }
+
+    private void saveToFire(TodoWithImage todo)
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> todo_db = new HashMap<>();
+        todo_db.put("ID", todo.getID());
+        todo_db.put("String", todo.getString());
+        todo_db.put("image", todo.getImage());
+        todo_db.put("is_done", todo.getIsDone());
+        todo_db.put("create", todo.getDate("create"));
+        todo_db.put("edit", todo.getDate("edit"));
+        db.collection("todo_items").document("" + todo.getID()).set(todo_db);
+    }
+
+    private void deleteFromFire(TodoWithImage todo)
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("todo_items").document("" + todo.getID()).delete();
+    }
+
+    private void updateFire(TodoWithImage todo)
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("todo_items").document("" + todo.getID())
+                .update("String", todo.getString());
+        db.collection("todo_items").document("" + todo.getID())
+                .update("image", todo.getImage());
+        db.collection("todo_items").document("" + todo.getID())
+                .update("is_done", todo.getIsDone());
+        db.collection("todo_items").document("" + todo.getID())
+                .update("edit", todo.getDate("edit"));
+    }
+
+    private void readFire()
+    {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("todo_items").get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if(task.isSuccessful())
+                        {
+                            for (QueryDocumentSnapshot doc : task.getResult())
+                            {
+                                TodoWithImage todo = new TodoWithImage(doc.get("String").toString(),
+                                        Integer.parseInt(doc.get("image").toString())
+                                        , Integer.parseInt(doc.get("is_done").toString())
+                                        , Long.parseLong(doc.get("ID").toString())
+                                        , doc.get("create").toString()
+                                        , doc.get("edit").toString());
+                                todo_list.add(todo);
+                            }
+                            Log.d(TAG, "todo_list - success");
+                        }
+                        else
+                        {
+                            Log.d(TAG, "todo_list - not success");
+                        }
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                initRecyclerView();
+            }
+        });
     }
 }

@@ -5,18 +5,24 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.ArrayList;
+
 public class Todoboom extends Application
 {
     String TAG = "Application";
+
     @Override
     public void onCreate(){
         super.onCreate();
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
-        String s = sp.getString("todo_list", null);
-        if(s != null)
-        {
-            String[] cur_s = s.split(";");
-            Log.d(TAG, "" + (cur_s.length/2)); // The list is twice bigger - 2 cells per each TODO_item
-        }
+        //readFire();
     }
 }
