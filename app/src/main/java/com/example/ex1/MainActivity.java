@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private static String TAG = "MainActivity";
     private ArrayList<TodoWithImage> todo_list = new ArrayList<>();
     private String ERRORMSG = "OOPS!\nYOU CAN NOT CREATE AN EMPTY TODOBOOM :)";
+    LoadingDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
         else
         {
             readFire();
+            loadingDialog = new LoadingDialog();
+            loadingDialog.show(getSupportFragmentManager(), "loading dialog");
         }
 //        Todoboom app = (Todoboom) getApplicationContext();
 //        this.todo_list = app.todo_list;
@@ -307,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
                 }).addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                loadingDialog.dismiss();
                 initRecyclerView();
             }
         });
